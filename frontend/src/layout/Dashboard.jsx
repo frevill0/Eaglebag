@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaChevronDown, FaUser, FaHome, FaBoxes, FaUsers, FaGolfBall, FaBars } from 'react-icons/fa';
+import { FaChevronDown, FaUser, FaHome, FaBoxes, FaUsers, FaGolfBall, FaBars, FaPlus } from 'react-icons/fa';
 import productImage from '../assets/sets.jpg';
 
 export function Dashboard() {
@@ -84,7 +84,7 @@ export function Dashboard() {
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      {/* Header */}
+      {/* Encabezado */}
       <header className="border-b p-4 flex justify-between items-center bg-white shadow">
         <div className="flex items-center space-x-3">
           <button onClick={() => setSidebarOpen(!sidebarOpen)} className="text-[#001937] hover:text-[#FFC800] md:hidden">
@@ -95,17 +95,21 @@ export function Dashboard() {
         </div>
 
         <nav className="flex items-center space-x-8">
-          <a href="#" className="flex items-center space-x-2 text-[#001937] hover:text-[#FFC800]">
+          <a href="/dashboard" className="flex items-center space-x-2 text-[#001937] hover:text-[#FFC800]">
             <FaHome className="text-lg" />
-            <span>Home</span>
+            <span>Inicio</span>
           </a>
           <a href="/dashboard/inventory" className="flex items-center space-x-2 text-[#001937] hover:text-[#FFC800]">
             <FaBoxes className="text-lg" />
-            <span>Inventory</span>
+            <span>Inventario</span>
+          </a>
+          <a href="/dashboard/register" className="flex items-center space-x-2 text-[#001937] hover:text-[#FFC800]">
+            <FaPlus className="text-lg" />
+            <span>Registrar</span>
           </a>
           <a href="/dashboard/users" className="flex items-center space-x-2 text-[#001937] hover:text-[#FFC800]">
             <FaUsers className="text-lg" />
-            <span>Users</span>
+            <span>Usuarios</span>
           </a>
         </nav>
 
@@ -115,21 +119,21 @@ export function Dashboard() {
       </header>
 
       <div className="flex flex-1">
-        {/* Sidebar */}
+        {/* Barra lateral */}
         <aside
           className={`transform ${
             sidebarOpen ? 'translate-x-0' : '-translate-x-full'
           } transition-transform duration-300 md:translate-x-0 fixed md:static md:block w-64 p-6 border-r bg-[#F9F9F9] z-10`}
         >
-          <h3 className="text-lg font-semibold mb-6 text-[#001937]">Filters</h3>
+          <h3 className="text-lg font-semibold mb-6 text-[#001937]">Filtros</h3>
 
-          {/* Category Dropdown */}
+          {/* Filtro por categoría */}
           <div className="mb-6">
             <button
               onClick={() => setCategoryOpen(!categoryOpen)}
               className="flex items-center justify-between w-full py-3 px-4 bg-white rounded-lg hover:shadow-md transition-shadow"
             >
-              <span className="font-medium text-[#001937]">Category</span>
+              <span className="font-medium text-[#001937]">Categoría</span>
               <FaChevronDown
                 className={`text-[#001937] transform transition-transform ${
                   categoryOpen ? 'rotate-180' : ''
@@ -138,20 +142,20 @@ export function Dashboard() {
             </button>
             {categoryOpen && (
               <ul className="mt-3 space-y-2 pl-4">
-                <li className="text-gray-700 hover:text-[#007B3E] cursor-pointer">Golf Clubs</li>
-                <li className="text-gray-700 hover:text-[#007B3E] cursor-pointer">Golf Balls</li>
-                <li className="text-gray-700 hover:text-[#007B3E] cursor-pointer">Accessories</li>
+                <li className="text-gray-700 hover:text-[#007B3E] cursor-pointer">Palos de Golf</li>
+                <li className="text-gray-700 hover:text-[#007B3E] cursor-pointer">Pelotas de Golf</li>
+                <li className="text-gray-700 hover:text-[#007B3E] cursor-pointer">Accesorios</li>
               </ul>
             )}
           </div>
 
-          {/* Brand Dropdown */}
+          {/* Filtro por marca */}
           <div className="mb-6">
             <button
               onClick={() => setBrandOpen(!brandOpen)}
               className="flex items-center justify-between w-full py-3 px-4 bg-white rounded-lg hover:shadow-md transition-shadow"
             >
-              <span className="font-medium text-[#001937]">Brand</span>
+              <span className="font-medium text-[#001937]">Marca</span>
               <FaChevronDown
                 className={`text-[#001937] transform transition-transform ${
                   brandOpen ? 'rotate-180' : ''
@@ -168,13 +172,13 @@ export function Dashboard() {
           </div>
         </aside>
 
-        {/* Main Content */}
+        {/* Contenido principal */}
         <main className="flex-1 p-8 md:ml-16 flex justify-center">
           <div className="max-w-screen-xl w-full">
             <div className="flex justify-center mb-8">
               <input
                 type="search"
-                placeholder="Search inventory..."
+                placeholder="Buscar en el inventario..."
                 className="w-2/3 px-4 py-3 border rounded-lg shadow-sm focus:ring-2 focus:ring-[#FFC800] focus:outline-none"
               />
             </div>
@@ -200,13 +204,13 @@ export function Dashboard() {
         </main>
       </div>
 
-      {/* Footer */}
+      {/* Pie de página */}
       <footer className="border-t p-4 bg-white text-sm text-gray-600">
         <div className="flex justify-between items-center">
           <p>© 2025 Quito Tenis & Golf Club. Todos los derechos reservados.</p>
           <div className="space-x-4">
-            <a href="#" className="hover:text-[#001937]">Help</a>
-            <a href="#" className="hover:text-[#001937]">Support</a>
+            <a href="#" className="hover:text-[#001937]">Ayuda</a>
+            <a href="#" className="hover:text-[#001937]">Soporte</a>
           </div>
         </div>
       </footer>
