@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaUser, FaHome, FaBoxes, FaUsers, FaPlus, FaGolfBall } from 'react-icons/fa';
+import { NewUserModal } from '../components/NewUserModal';
 
 export function Users() {
     const navigate = useNavigate();
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const [users] = useState([
         { id: 1, name: 'John Smith', email: 'john.smith@example.com' },
         { id: 2, name: 'Emily Davis', email: 'emily.davis@example.com' },
@@ -57,8 +59,12 @@ export function Users() {
                             placeholder="Buscar Usuarios"
                             className="px-4 py-2 border rounded-lg w-64"
                         />
-                        <button className="bg-[#FFC800] text-white px-4 py-2 rounded-lg shadow hover:bg-[#001937] hover:text-[#FFC800]">
-                            Añadir Nuevo Usuario
+                        <button
+                            onClick={() => setIsModalOpen(true)}
+                            className="bg-[#FFC800] text-white px-4 py-2 rounded-lg shadow hover:bg-[#001937] hover:text-[#FFC800] flex items-center space-x-2"
+                        >
+                            <FaPlus />
+                            <span>Añadir Nuevo Usuario</span>
                         </button>
                     </div>
 
@@ -108,6 +114,13 @@ export function Users() {
                     </div>
                 </div>
             </footer>
+
+            {isModalOpen && (
+                <NewUserModal
+                    isOpen={isModalOpen}
+                    onClose={() => setIsModalOpen(false)}
+                />
+            )}
         </div>
     );
 }

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { FaChevronDown, FaUser, FaHome, FaBoxes, FaUsers, FaGolfBall, FaBars, FaPlus, FaSearch } from 'react-icons/fa';
 import { BagDetailsModal } from '../components/BagDetailsModal';
 import productImage from '../assets/sets.jpg';
+import { NewBagModal } from '../components/NewBagModal';
 
 export function Dashboard() {
   const navigate = useNavigate();
@@ -13,6 +14,7 @@ export function Dashboard() {
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
   const [selectedBag, setSelectedBag] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isNewBagModalOpen, setIsNewBagModalOpen] = useState(false);
 
   const [bags] = useState([
     {
@@ -198,6 +200,10 @@ export function Dashboard() {
             <FaUsers className="text-lg" />
             <span>Usuarios</span>
           </a>
+          <a href="/dashboard/socios" className="flex items-center space-x-2 text-[#001937] hover:text-[#FFC800]">
+            <FaUser className="text-lg" />
+            <span>Socios</span>
+          </a>
         </nav>
 
         <button onClick={() => navigate('/')} className="p-2 text-[#001937] hover:text-[#FFC800]">
@@ -290,7 +296,7 @@ export function Dashboard() {
         {/* Contenido principal */}
         <main className="flex-1 p-8 md:ml-16 flex justify-center">
           <div className="max-w-screen-xl w-full">
-            <div className="flex justify-center mb-8">
+            <div className="flex justify-between items-center mb-8">
               <div className="relative w-2/3">
                 <input
                   type="search"
@@ -301,6 +307,13 @@ export function Dashboard() {
                 />
                 <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               </div>
+              <button
+                onClick={() => setIsNewBagModalOpen(true)}
+                className="px-4 py-2 bg-[#FFC800] text-white rounded-lg hover:bg-[#e6b400] flex items-center space-x-2"
+              >
+                <FaPlus />
+                <span>Nueva Talega</span>
+              </button>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8">
@@ -342,6 +355,13 @@ export function Dashboard() {
             setIsModalOpen(false);
             setSelectedBag(null);
           }} 
+        />
+      )}
+
+      {isNewBagModalOpen && (
+        <NewBagModal 
+          isOpen={isNewBagModalOpen}
+          onClose={() => setIsNewBagModalOpen(false)}
         />
       )}
 

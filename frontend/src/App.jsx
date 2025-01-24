@@ -4,6 +4,7 @@ import Dashboard from './layout/Dashboard'
 import Users from './pages/Users'
 import Inventory from './pages/inventory'
 import Register from './pages/Registro'
+import Socios from './pages/Socios'
 function App() {
   return (
     <>
@@ -15,6 +16,7 @@ function App() {
         <Route path="dashboard/register" element={<Register/>}></Route>
         <Route path="dashboard/users" element={<Users/>}></Route>
         <Route path="dashboard/inventory" element={<Inventory/>}></Route>
+        <Route path="dashboard/socios" element={<Socios/>}></Route>
       </Routes>
      
      </BrowserRouter>
