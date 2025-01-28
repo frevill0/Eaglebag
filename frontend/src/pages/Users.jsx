@@ -1,23 +1,56 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { FaUser, FaHome, FaBoxes, FaUsers, FaPlus, FaGolfBall } from 'react-icons/fa';
+import { useState, useEffect } from 'react';
+import { FaPlus, FaEdit, FaTrash } from 'react-icons/fa';
 import { NewUserModal } from '../components/NewUserModal';
 import Header from '../components/Header';
 
 export function Users() {
-    const navigate = useNavigate();
+    const [users, setUsers] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [users] = useState([
-        { id: 1, name: 'John Smith', email: 'john.smith@example.com' },
-        { id: 2, name: 'Emily Davis', email: 'emily.davis@example.com' },
-        { id: 3, name: 'Michael Johnson', email: 'michael.johnson@example.com' },
-        { id: 4, name: 'Sarah Lee', email: 'sarah.lee@example.com' },
-        { id: 5, name: 'Laura Brown', email: 'laura.brown@example.com' },
-        { id: 6, name: 'David Wilson', email: 'david.wilson@example.com' },
-        { id: 7, name: 'Samantha Green', email: 'samantha.green@example.com' },
-        { id: 8, name: 'Chris Evans', email: 'chris.evans@example.com' },
-        { id: 9, name: 'Alice Cooper', email: 'alice.cooper@example.com' },
-    ]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    const fetchUsers = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                throw new Error('No hay sesión activa');
+            }
+
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/usuarios/obtener`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                if (response.status === 404) {
+                    throw new Error('Recurso no encontrado');
+                }
+                const errorData = await response.json().catch(() => ({
+                    error: 'Error de conexión con el servidor'
+                }));
+                throw new Error(errorData.error || 'Error al obtener usuarios');
+            }
+
+            const data = await response.json();
+            if (Array.isArray(data)) {
+                setUsers(data.map(user => ({
+                    ...user,
+                    codigo_colaborador: user.codigo_colaborador.toString()
+                })));
+            } else {
+                throw new Error('Formato de datos inválido');
+            }
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchUsers();
+    }, []);
 
     return (
         <div className="min-h-screen flex flex-col bg-white">
@@ -43,38 +76,74 @@ export function Users() {
                     </div>
 
                     {/* Users Table */}
-                    <div className="bg-white rounded-lg shadow">
-                        <table className="min-w-full">
-                            <thead>
-                                <tr className="bg-[#001937] text-white">
-                                    <th className="text-left py-4 px-6">Nombre</th>
-                                    <th className="text-left py-4 px-6">Correo Electrónico</th>
-                                    <th className="text-left py-4 px-6">Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {users.map((user, index) => (
-                                    <tr
-                                        key={user.id}
-                                        className={index % 2 === 0 ? 'bg-[#F9F9F9] text-[#001937]' : 'bg-white text-[#001937]'}
-                                    >
-                                        <td className="py-4 px-6">{user.name}</td>
-                                        <td className="py-4 px-6">{user.email}</td>
-                                        <td className="py-4 px-6">
-                                            <div className="flex space-x-2">
-                                                <button className="bg-[#FFC800] text-white px-4 py-1 rounded hover:bg-[#001937] hover:text-[#FFC800]">
-                                                    Editar
-                                                </button>
-                                                <button className="bg-gray-400 text-white px-4 py-1 rounded hover:bg-gray-500">
-                                                    Eliminar
-                                                </button>
-                                            </div>
-                                        </td>
+                    {loading ? (
+                        <div className="text-center py-4">Cargando usuarios...</div>
+                    ) : error ? (
+                        <div className="text-red-600 text-center py-4">{error}</div>
+                    ) : (
+                        <div className="bg-white rounded-lg shadow overflow-hidden">
+                            <table className="min-w-full">
+                                <thead>
+                                    <tr className="bg-[#001937] text-white">
+                                        <th className="text-left py-4 px-6">Código</th>
+                                        <th className="text-left py-4 px-6">Usuario</th>
+                                        <th className="text-left py-4 px-6">Correo</th>
+                                        <th className="text-left py-4 px-6">Rol</th>
+                                        <th className="text-center py-4 px-6">Estado</th>
+                                        <th className="text-center py-4 px-6">Acciones</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                                </thead>
+                                <tbody>
+                                    {users.map((user, index) => (
+                                        <tr
+                                            key={user.codigo_colaborador}
+                                            className={index % 2 === 0 ? 'bg-[#F9F9F9]' : 'bg-white'}
+                                        >
+                                            <td className="py-4 px-6">{user.codigo_colaborador}</td>
+                                            <td className="py-4 px-6">{user.nombre_usuario}</td>
+                                            <td className="py-4 px-6">{user.correo}</td>
+                                            <td className="py-4 px-6">
+                                                <span className={`px-2 py-1 rounded-full text-sm ${
+                                                    user.rol === 'ADMIN' 
+                                                        ? 'bg-purple-100 text-purple-800'
+                                                        : user.rol === 'OPERADOR'
+                                                        ? 'bg-blue-100 text-blue-800'
+                                                        : 'bg-gray-100 text-gray-800'
+                                                }`}>
+                                                    {user.rol}
+                                                </span>
+                                            </td>
+                                            <td className="py-4 px-6 text-center">
+                                                <span className={`px-2 py-1 rounded-full text-sm ${
+                                                    user.estado === 1
+                                                        ? 'bg-green-100 text-green-800'
+                                                        : 'bg-red-100 text-red-800'
+                                                }`}>
+                                                    {user.estado === 1 ? 'Activo' : 'Inactivo'}
+                                                </span>
+                                            </td>
+                                            <td className="py-4 px-6">
+                                                <div className="flex justify-center space-x-3">
+                                                    <button 
+                                                        className="text-blue-600 hover:text-blue-800"
+                                                        title="Editar usuario"
+                                                    >
+                                                        <FaEdit size={18} />
+                                                    </button>
+                                                    <button 
+                                                        className="text-red-600 hover:text-red-800"
+                                                        title="Eliminar usuario"
+                                                    >
+                                                        <FaTrash size={18} />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
                 </div>
             </main>
 
@@ -93,6 +162,7 @@ export function Users() {
                 <NewUserModal
                     isOpen={isModalOpen}
                     onClose={() => setIsModalOpen(false)}
+                    onUserCreated={fetchUsers}
                 />
             )}
         </div>

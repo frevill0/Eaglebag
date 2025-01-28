@@ -242,10 +242,22 @@ const obtenerUsuarios = async (req, res) => {
         fecha_creacion: true
       }
     });
-    res.json(usuarios);
+
+    // Convertir BigInt a string antes de enviar la respuesta
+    const usuariosFormateados = usuarios.map(usuario => ({
+      ...usuario,
+      codigo_colaborador: usuario.codigo_colaborador.toString()
+    }));
+
+    res.json(usuariosFormateados);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Error al obtener usuarios' });
+    console.error('Error en obtenerUsuarios:', error);
+    res.status(500).json({ 
+      error: 'Error al obtener usuarios',
+      mensaje: 'Ocurrió un error interno',
+      ayuda: 'Por favor, intenta nuevamente más tarde',
+      detalles: error.message
+    });
   }
 };
 
