@@ -1,14 +1,20 @@
 import express from 'express';
-import { loginUsuario, createUsuario, deleteUsuario, updateUsuario, getUsuarios } from '../controllers/usuarios.js';
+import { 
+  iniciarSesion, 
+  crearUsuario, 
+  eliminarUsuario, 
+  actualizarUsuario, 
+  obtenerUsuarios 
+} from '../controllers/usuarios.js';
 import { verifyToken } from '../middlewares/autenticacion.js';
 
 const router = express.Router();
 
-router.post('/login', loginUsuario);
-router.post('/create', verifyToken, createUsuario);
-router.delete('/delete/:id', verifyToken, deleteUsuario);
-router.put('/update/:id', verifyToken, updateUsuario);
-router.get('/get', verifyToken, getUsuarios);
+router.post('/login', iniciarSesion);
+router.post('/crear', crearUsuario);
+router.delete('/eliminar/:id', verifyToken, eliminarUsuario);
+router.put('/actualizar/:id', verifyToken, actualizarUsuario);
+router.get('/obtener', verifyToken, obtenerUsuarios);
 
-export default router;
+export default router; 
 

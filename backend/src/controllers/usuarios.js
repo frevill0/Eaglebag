@@ -4,16 +4,22 @@ import { generateToken } from '../middlewares/autenticacion.js';
 import { ERROR_MESSAGES } from '../utils/errorMessages.js';
 import { validateEmail, validatePassword, validateUsername, validateCodigoColaborador } from '../utils/validations.js';
 
+// Crear una única instancia de PrismaClient
 const prisma = new PrismaClient();
 
+// Agregar manejo de errores en la inicialización
+prisma.$connect()
+  .then(() => console.log('Base de datos conectada exitosamente'))
+  .catch((error) => console.error('Error conectando a la base de datos:', error));
+
 // Login de usuario
-const loginUsuario = async (req, res) => {
+const iniciarSesion = async (req, res) => {
   try {
-    const { correo, contrasena } = req.body;
+    const { nombre_usuario, contrasena } = req.body;
 
     // Validación de campos requeridos
     const errores = {};
-    if (!correo) errores.correo = ERROR_MESSAGES.REQUIRED_FIELDS.correo;
+    if (!nombre_usuario) errores.nombre_usuario = ERROR_MESSAGES.REQUIRED_FIELDS.nombre_usuario;
     if (!contrasena) errores.contrasena = ERROR_MESSAGES.REQUIRED_FIELDS.contrasena;
 
     if (Object.keys(errores).length > 0) {
@@ -25,13 +31,13 @@ const loginUsuario = async (req, res) => {
     }
 
     const usuario = await prisma.usuarios.findUnique({
-      where: { correo: correo.toLowerCase() }
+      where: { nombre_usuario: nombre_usuario }
     });
 
     if (!usuario) {
       return res.status(401).json({ 
         error: ERROR_MESSAGES.AUTH.invalid_credentials,
-        ayuda: 'Verifica que el correo y la contraseña sean correctos'
+        ayuda: 'Verifica que el usuario y la contraseña sean correctos'
       });
     }
 
@@ -46,7 +52,7 @@ const loginUsuario = async (req, res) => {
     if (!validPassword) {
       return res.status(401).json({ 
         error: ERROR_MESSAGES.AUTH.invalid_credentials,
-        ayuda: 'Verifica que el correo y la contraseña sean correctos'
+        ayuda: 'Verifica que el usuario y la contraseña sean correctos'
       });
     }
 
@@ -64,7 +70,7 @@ const loginUsuario = async (req, res) => {
       mensaje: '¡Bienvenido de nuevo!'
     });
   } catch (error) {
-    console.error('Error en loginUsuario:', error);
+    console.error('Error en iniciarSesion:', error);
     res.status(500).json({ 
       error: 'Error en el inicio de sesión',
       mensaje: 'Ocurrió un error inesperado',
@@ -74,8 +80,13 @@ const loginUsuario = async (req, res) => {
 };
 
 // Crear un nuevo usuario
-const createUsuario = async (req, res) => {
+const crearUsuario = async (req, res) => {
   try {
+    // Verificar conexión a la base de datos
+    if (!prisma) {
+      throw new Error('La conexión a la base de datos no está disponible');
+    }
+
     const {
       codigo_colaborador,
       nombre_usuario,
@@ -144,7 +155,7 @@ const createUsuario = async (req, res) => {
     const usuario = await prisma.usuarios.create({
       data: {
         codigo_colaborador: BigInt(codigo_colaborador),
-        nombre_usuario,
+        nombre_usuario, 
         correo: correo.toLowerCase(),
         contrasena: hashedPassword,
         rol,
@@ -159,17 +170,18 @@ const createUsuario = async (req, res) => {
       usuario: usuarioSinPassword
     });
   } catch (error) {
-    console.error('Error en createUsuario:', error);
+    console.error('Error en crearUsuario:', error);
     res.status(500).json({ 
       error: 'Error al crear el usuario',
       mensaje: 'Ocurrió un error interno',
-      ayuda: 'Por favor, intenta nuevamente más tarde'
+      ayuda: 'Por favor, intenta nuevamente más tarde',
+      detalles: error.message
     });
   }
 };
 
 // Actualizar un usuario
-const updateUsuario = async (req, res) => {
+const actualizarUsuario = async (req, res) => {
   try {
     const { codigo_colaborador } = req.params;
     const {
@@ -211,7 +223,7 @@ const updateUsuario = async (req, res) => {
 };
 
 // Obtener todos los usuarios
-const getUsuarios = async (req, res) => {
+const obtenerUsuarios = async (req, res) => {
   try {
     const usuarios = await prisma.usuarios.findMany({
       select: {
@@ -231,7 +243,7 @@ const getUsuarios = async (req, res) => {
 };
 
 // Obtener un usuario por ID
-const getUsuarioById = async (req, res) => {
+const obtenerUsuarioPorId = async (req, res) => {
   try {
     const { codigo_colaborador } = req.params;
     const usuario = await prisma.usuarios.findUnique({
@@ -257,7 +269,7 @@ const getUsuarioById = async (req, res) => {
   }
 };
 
-const deleteUsuario = async (req, res) => {
+const eliminarUsuario = async (req, res) => {
   try {
     const { codigo_colaborador } = req.params;
 
@@ -282,10 +294,10 @@ const deleteUsuario = async (req, res) => {
 };
 
 export {
-  getUsuarios,
-  getUsuarioById,
-  createUsuario,
-  updateUsuario,
-  deleteUsuario,
-  loginUsuario
+  obtenerUsuarios,
+  obtenerUsuarioPorId,
+  crearUsuario,
+  actualizarUsuario,
+  eliminarUsuario,
+  iniciarSesion
 };

@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaChevronDown, FaUser, FaHome, FaBoxes, FaUsers, FaGolfBall, FaBars, FaPlus, FaSearch } from 'react-icons/fa';
+import { FaChevronDown, FaHome, FaBoxes, FaUsers, FaGolfBall, FaBars, FaPlus, FaSearch } from 'react-icons/fa';
 import { BagDetailsModal } from '../components/BagDetailsModal';
 import productImage from '../assets/sets.jpg';
 import { NewBagModal } from '../components/NewBagModal';
+import Header from '../components/Header';
+import { useAuth } from '../context/AuthContext';
 
 export function Dashboard() {
   const navigate = useNavigate();
@@ -15,6 +17,8 @@ export function Dashboard() {
   const [selectedBag, setSelectedBag] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isNewBagModalOpen, setIsNewBagModalOpen] = useState(false);
+
+  const { logout } = useAuth();
 
   const [bags] = useState([
     {
@@ -171,45 +175,14 @@ export function Dashboard() {
     setIsModalOpen(true);
   };
 
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      {/* Encabezado */}
-      <header className="border-b p-4 flex justify-between items-center bg-white shadow">
-        <div className="flex items-center space-x-3">
-          <button onClick={() => setSidebarOpen(!sidebarOpen)} className="text-[#001937] hover:text-[#FFC800] md:hidden">
-            <FaBars className="text-2xl" />
-          </button>
-          <FaGolfBall className="text-[#FFC800] text-2xl" />
-          <span className="text-2xl font-bold text-[#001937]">Eaglebag</span>
-        </div>
-
-        <nav className="flex items-center space-x-8">
-          <a href="/dashboard" className="flex items-center space-x-2 text-[#001937] hover:text-[#FFC800]">
-            <FaHome className="text-lg" />
-            <span>Inicio</span>
-          </a>
-          <a href="/dashboard/inventory" className="flex items-center space-x-2 text-[#001937] hover:text-[#FFC800]">
-            <FaBoxes className="text-lg" />
-            <span>Inventario</span>
-          </a>
-          <a href="/dashboard/register" className="flex items-center space-x-2 text-[#001937] hover:text-[#FFC800]">
-            <FaPlus className="text-lg" />
-            <span>Registrar</span>
-          </a>
-          <a href="/dashboard/users" className="flex items-center space-x-2 text-[#001937] hover:text-[#FFC800]">
-            <FaUsers className="text-lg" />
-            <span>Usuarios</span>
-          </a>
-          <a href="/dashboard/socios" className="flex items-center space-x-2 text-[#001937] hover:text-[#FFC800]">
-            <FaUser className="text-lg" />
-            <span>Socios</span>
-          </a>
-        </nav>
-
-        <button onClick={() => navigate('/')} className="p-2 text-[#001937] hover:text-[#FFC800]">
-          <FaUser className="text-xl" />
-        </button>
-      </header>
+      <Header setSidebarOpen={setSidebarOpen} />
 
       <div className="flex flex-1">
         {/* Barra lateral */}
@@ -277,104 +250,53 @@ export function Dashboard() {
                 </div>
               </div>
             </div>
-
-            {/* Botón para limpiar filtros */}
-            <button
-              onClick={() => {
-                setSelectedLocation('todos');
-                setSelectedStatus('todos');
-                setDateRange({ start: '', end: '' });
-                setSearchTerm('');
-              }}
-              className="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-            >
-              Limpiar Filtros
-            </button>
           </div>
         </aside>
 
         {/* Contenido principal */}
-        <main className="flex-1 p-8 md:ml-16 flex justify-center">
-          <div className="max-w-screen-xl w-full">
-            <div className="flex justify-between items-center mb-8">
-              <div className="relative w-2/3">
-                <input
-                  type="search"
-                  placeholder="Buscar talegas..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full px-4 py-3 pl-10 border rounded-lg shadow-sm focus:ring-2 focus:ring-[#FFC800] focus:outline-none"
-                />
-                <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-              </div>
-              <button
-                onClick={() => setIsNewBagModalOpen(true)}
-                className="px-4 py-2 bg-[#FFC800] text-white rounded-lg hover:bg-[#e6b400] flex items-center space-x-2"
-              >
-                <FaPlus />
-                <span>Nueva Talega</span>
-              </button>
-            </div>
+        <main className="flex-1 p-8">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold text-[#001937]">Dashboard</h2>
+          </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8">
-              {filteredBags.map((bag) => (
-                <div
-                  key={bag.id}
-                  onClick={() => handleBagClick(bag)}
-                  className="border rounded-lg p-4 shadow-md bg-white hover:shadow-lg transition-shadow cursor-pointer"
-                >
-                  <img
-                    src={bag.image}
-                    alt={`Talega ${bag.bagCode}`}
-                    className="w-full h-48 object-cover rounded-lg mb-4"
-                  />
-                  <h3 className="font-semibold text-lg text-[#001937]">{bag.bagCode}</h3>
-                  <p className="text-sm text-gray-600 mb-2">{bag.socioName}</p>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-500">{bag.location}</span>
-                    <span className={`px-2 py-1 rounded-full text-sm ${
-                      bag.status === 'Activo' 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-red-100 text-red-800'
-                    }`}>
-                      {bag.status}
-                    </span>
-                  </div>
+          {/* Contenido del dashboard */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8">
+            {filteredBags.map((bag) => (
+              <div
+                key={bag.id}
+                onClick={() => handleBagClick(bag)}
+                className="border rounded-lg p-4 shadow-md bg-white hover:shadow-lg transition-shadow cursor-pointer"
+              >
+                <img
+                  src={bag.image}
+                  alt={`Talega ${bag.bagCode}`}
+                  className="w-full h-48 object-cover rounded-lg mb-4"
+                />
+                <h3 className="font-semibold text-lg text-[#001937]">{bag.bagCode}</h3>
+                <p className="text-sm text-gray-600 mb-2">{bag.socioName}</p>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-500">{bag.location}</span>
+                  <span className={`px-2 py-1 rounded-full text-sm ${
+                    bag.status === 'Activo' 
+                      ? 'bg-green-100 text-green-800' 
+                      : 'bg-red-100 text-red-800'
+                  }`}>
+                    {bag.status}
+                  </span>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
         </main>
       </div>
 
       {/* Modal */}
       {isModalOpen && (
-        <BagDetailsModal 
-          bag={selectedBag} 
-          onClose={() => {
-            setIsModalOpen(false);
-            setSelectedBag(null);
-          }} 
+        <BagDetailsModal
+          bag={selectedBag}
+          onClose={() => setIsModalOpen(false)}
         />
       )}
-
-      {isNewBagModalOpen && (
-        <NewBagModal 
-          isOpen={isNewBagModalOpen}
-          onClose={() => setIsNewBagModalOpen(false)}
-        />
-      )}
-
-      {/* Pie de página */}
-      <footer className="border-t p-4 bg-white text-sm text-gray-600">
-        <div className="flex justify-between items-center">
-          <p>© 2025 Quito Tenis & Golf Club. Todos los derechos reservados.</p>
-          <div className="space-x-4">
-            <a href="#" className="hover:text-[#001937]">Ayuda</a>
-            <a href="#" className="hover:text-[#001937]">Soporte</a>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }

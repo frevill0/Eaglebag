@@ -3,6 +3,7 @@ import { FaPlus, FaSearch, FaEye, FaBars, FaGolfBall, FaHome, FaBoxes, FaUsers, 
 import { useNavigate } from 'react-router-dom';
 import { SocioTalegasModal } from '../components/SocioTalegasModal';
 import { NewSocioModal } from '../components/NewSocioModal';
+import Header from '../components/Header';
 
 // Datos de socios (pueden venir de una API en el futuro)
 const initialSocios = [
@@ -79,46 +80,9 @@ export function Socios() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-100">
-      {/* Header */}
-      <header className="border-b p-4 flex justify-between items-center bg-white shadow-lg">
-        <div className="flex items-center space-x-3">
-          <button onClick={() => setSidebarOpen(!sidebarOpen)} className="text-[#001937] hover:text-[#FFC800] md:hidden">
-            <FaBars className="text-2xl" />
-          </button>
-          <FaGolfBall className="text-[#FFC800] text-2xl" />
-          <span className="text-2xl font-bold text-[#001937]">Eaglebag</span>
-        </div>
+    <div className="min-h-screen flex flex-col bg-white">
+      <Header setSidebarOpen={setSidebarOpen} />
 
-        <nav className="hidden md:flex items-center space-x-8">
-          <a href="/dashboard" className="flex items-center space-x-2 text-[#001937] hover:text-[#FFC800] transition-colors">
-            <FaHome className="text-lg" />
-            <span>Inicio</span>
-          </a>
-          <a href="/dashboard/inventory" className="flex items-center space-x-2 text-[#001937] hover:text-[#FFC800] transition-colors">
-            <FaBoxes className="text-lg" />
-            <span>Inventario</span>
-          </a>
-          <a href="/dashboard/register" className="flex items-center space-x-2 text-[#001937] hover:text-[#FFC800] transition-colors">
-            <FaPlus className="text-lg" />
-            <span>Registrar</span>
-          </a>
-          <a href="/dashboard/users" className="flex items-center space-x-2 text-[#001937] hover:text-[#FFC800] transition-colors">
-            <FaUsers className="text-lg" />
-            <span>Usuarios</span>
-          </a>
-          <a href="/dashboard/socios" className="flex items-center space-x-2 text-[#001937] hover:text-[#FFC800] transition-colors">
-            <FaUser className="text-lg" />
-            <span>Socios</span>
-          </a>
-        </nav>
-
-        <button onClick={() => navigate('/')} className="p-2 text-[#001937] hover:text-[#FFC800] transition-colors">
-          <FaUser className="text-xl" />
-        </button>
-      </header>
-
-      {/* Main content */}
       <main className="flex-1 p-6">
         <div className="max-w-7xl mx-auto">
           <div className="flex justify-between items-center mb-8">

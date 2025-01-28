@@ -3359,7 +3359,7 @@ model data_source {
   create_time  DateTime? @db.DateTime
   creater_code String?   @db.NVarChar(30)
   creater_id   String?   @db.NVarChar(50)
-  creater_name String?   @db.NVarChar(50) 
+  creater_name String?   @db.NVarChar(50)
   op_version   Int?
   update_time  DateTime? @db.DateTime
   updater_code String?   @db.NVarChar(30)

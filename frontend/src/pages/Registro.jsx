@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { FaChevronDown, FaUser, FaHome, FaBoxes, FaUsers, FaGolfBall, FaBars, FaPlus, FaFilter, FaSearch, FaCalendar } from 'react-icons/fa';
 import { CSVLink } from 'react-csv';
 import { RegistroModal } from '../components/RegistroModal';
+import Header from '../components/Header';
 
 export function Register() {
   const navigate = useNavigate();
@@ -42,39 +43,7 @@ export function Register() {
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      {/* Encabezado */}
-      <header className="border-b p-4 flex justify-between items-center bg-white shadow">
-        <div className="flex items-center space-x-3">
-          <button onClick={() => setSidebarOpen(!sidebarOpen)} className="text-[#001937] hover:text-[#FFC800] md:hidden">
-            <FaBars className="text-2xl" />
-          </button>
-          <FaGolfBall className="text-[#FFC800] text-2xl" />
-          <span className="text-2xl font-bold text-[#001937]">Eaglebag</span>
-        </div>
-
-        <nav className="flex items-center space-x-8">
-          <a href="/dashboard" className="flex items-center space-x-2 text-[#001937] hover:text-[#FFC800]">
-            <FaHome className="text-lg" />
-            <span>Inicio</span>
-          </a>
-          <a href="/dashboard/inventory" className="flex items-center space-x-2 text-[#001937] hover:text-[#FFC800]">
-            <FaBoxes className="text-lg" />
-            <span>Inventario</span>
-          </a>
-          <a href="/dashboard/register" className="flex items-center space-x-2 text-[#001937] hover:text-[#FFC800]">
-            <FaPlus className="text-lg" />
-            <span>Registrar</span>
-          </a>
-          <a href="/dashboard/users" className="flex items-center space-x-2 text-[#001937] hover:text-[#FFC800]">
-            <FaUsers className="text-lg" />
-            <span>Usuarios</span>
-          </a>
-        </nav>
-
-        <button onClick={() => navigate('/')} className="p-2 text-[#001937] hover:text-[#FFC800]">
-          <FaUser className="text-xl" />
-        </button>
-      </header>
+      <Header setSidebarOpen={setSidebarOpen} />
 
       <div className="flex flex-1">
         {/* Filtros laterales */}
