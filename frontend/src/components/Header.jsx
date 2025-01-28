@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 export function Header({ setSidebarOpen }) {
   const navigate = useNavigate();
   const { logout } = useAuth();
+  const userRole = localStorage.getItem('usuario') ? JSON.parse(localStorage.getItem('usuario')).rol : null;
 
   const handleLogout = () => {
     logout();
@@ -34,10 +35,12 @@ export function Header({ setSidebarOpen }) {
           <FaPlus className="text-lg" />
           <span>Registrar</span>
         </a>
-        <a href="/dashboard/users" className="flex items-center space-x-2 text-[#001937] hover:text-[#FFC800]">
-          <FaUsers className="text-lg" />
-          <span>Usuarios</span>
-        </a>
+        {userRole === 'ADMIN' && (
+          <a href="/dashboard/users" className="flex items-center space-x-2 text-[#001937] hover:text-[#FFC800]">
+            <FaUsers className="text-lg" />
+            <span>Usuarios</span>
+          </a>
+        )}
         <a href="/dashboard/socios" className="flex items-center space-x-2 text-[#001937] hover:text-[#FFC800]">
           <FaUser className="text-lg" />
           <span>Socios</span>

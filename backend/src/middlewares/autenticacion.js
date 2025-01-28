@@ -2,9 +2,9 @@ import jwt from 'jsonwebtoken';
 
 // Definir roles válidos como constantes
 export const ROLES = {
-  ADMIN: 'administrador',
-  OPERADOR: 'operador',
-  CONSULTOR: 'consultor'
+  ADMIN: 'ADMIN',
+  OPERADOR: 'OPERADOR',
+  CONSULTOR: 'CONSULTOR'
 };
 
 const verifyToken = (req, res, next) => {

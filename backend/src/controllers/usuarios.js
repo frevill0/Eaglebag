@@ -3,6 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import { generateToken } from '../middlewares/autenticacion.js';
 import { ERROR_MESSAGES } from '../utils/errorMessages.js';
 import { validateEmail, validatePassword, validateUsername, validateCodigoColaborador } from '../utils/validations.js';
+import { ROLES } from '../middlewares/autenticacion.js';
 
 // Crear una única instancia de PrismaClient
 const prisma = new PrismaClient();
@@ -92,7 +93,7 @@ const crearUsuario = async (req, res) => {
       nombre_usuario,
       correo,
       contrasena,
-      rol = 'CONSULTOR'
+      rol
     } = req.body;
 
     // Validación de campos requeridos
@@ -101,6 +102,7 @@ const crearUsuario = async (req, res) => {
     if (!nombre_usuario) errores.nombre_usuario = ERROR_MESSAGES.REQUIRED_FIELDS.nombre_usuario;
     if (!correo) errores.correo = ERROR_MESSAGES.REQUIRED_FIELDS.correo;
     if (!contrasena) errores.contrasena = ERROR_MESSAGES.REQUIRED_FIELDS.contrasena;
+    if (!rol) errores.rol = ERROR_MESSAGES.REQUIRED_FIELDS.rol;
 
     // Validación de formatos
     if (codigo_colaborador && !validateCodigoColaborador(codigo_colaborador)) {
@@ -164,10 +166,15 @@ const crearUsuario = async (req, res) => {
       }
     });
 
-    const { contrasena: _, ...usuarioSinPassword } = usuario;
+    const { contrasena: _, ...usuarioData } = usuario;
+    const usuarioResponse = {
+      ...usuarioData,
+      codigo_colaborador: usuarioData.codigo_colaborador.toString()
+    };
+    
     res.status(201).json({
       mensaje: 'Usuario creado exitosamente',
-      usuario: usuarioSinPassword
+      usuario: usuarioResponse
     });
   } catch (error) {
     console.error('Error en crearUsuario:', error);

@@ -16,7 +16,10 @@ function App() {
           <Route path="/" element={<Login />} />
           <Route path="dashboard" element={<ProtectedRoute element={<Dashboard/>} />} />
           <Route path="dashboard/register" element={<ProtectedRoute element={<Register/>} />} />
-          <Route path="dashboard/users" element={<ProtectedRoute element={<Users/>} />} />
+          <Route 
+            path="dashboard/users" 
+            element={<ProtectedRoute element={<Users/>} requiredRole="ADMIN" />} 
+          />
           <Route path="dashboard/inventory" element={<ProtectedRoute element={<Inventory/>} />} />
           <Route path="dashboard/socios" element={<ProtectedRoute element={<Socios/>} />} />
         </Routes>
