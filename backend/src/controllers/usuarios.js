@@ -191,41 +191,55 @@ const crearUsuario = async (req, res) => {
 const actualizarUsuario = async (req, res) => {
   try {
     const { codigo_colaborador } = req.params;
-    const {
-      nombre_usuario,
-      correo,
-      contrasena,
-      rol,
-      estado
-    } = req.body;
+    const { nombre_usuario, correo, contrasena, rol, estado } = req.body;
 
-    const data = {};
-
-    if (nombre_usuario) data.nombre_usuario = nombre_usuario;
-    if (correo) data.correo = correo;
-    if (rol) {
-      if (!['ADMIN', 'OPERADOR', 'CONSULTOR'].includes(rol)) {
-        return res.status(400).json({
-          error: 'Rol no válido'
-        });
-      }
-      data.rol = rol;
-    }
-    if (estado !== undefined) data.estado = estado;
-    if (contrasena) {
-      data.contrasena = await bcrypt.hash(contrasena, 10);
-    }
-
-    const usuario = await prisma.usuarios.update({
-      where: { codigo_colaborador: BigInt(codigo_colaborador) },
-      data
+    // Verificar si el usuario existe
+    const usuarioExistente = await prisma.usuarios.findUnique({
+      where: { codigo_colaborador: BigInt(codigo_colaborador) }
     });
 
-    const { contrasena: _, ...usuarioSinPassword } = usuario;
-    res.json(usuarioSinPassword);
+    if (!usuarioExistente) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    // Construir objeto de actualización
+    const datosActualizacion = {
+      nombre_usuario,
+      correo,
+      rol,
+      estado: parseInt(estado)
+    };
+
+    // Si se proporciona contraseña, hashearla
+    if (contrasena) {
+      const salt = await bcrypt.genSalt(10);
+      datosActualizacion.contrasena = await bcrypt.hash(contrasena, salt);
+    }
+
+    // Actualizar usuario
+    const usuarioActualizado = await prisma.usuarios.update({
+      where: { codigo_colaborador: BigInt(codigo_colaborador) },
+      data: datosActualizacion
+    });
+
+    // Formatear la respuesta para manejar el BigInt
+    const usuarioFormateado = {
+      ...usuarioActualizado,
+      codigo_colaborador: usuarioActualizado.codigo_colaborador.toString(),
+      contrasena: undefined // Eliminamos la contraseña de la respuesta
+    };
+
+    res.json({
+      mensaje: 'Usuario actualizado correctamente',
+      usuario: usuarioFormateado
+    });
+
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Error al actualizar el usuario' });
+    console.error('Error al actualizar usuario:', error);
+    res.status(500).json({ 
+      error: 'Error al actualizar el usuario',
+      detalle: error.message 
+    });
   }
 };
 

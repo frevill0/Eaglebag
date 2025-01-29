@@ -16,10 +16,10 @@ export function EditUserModal({ isOpen, onClose, onUserUpdated, user }) {
   useEffect(() => {
     if (user) {
       setFormData({
-        nombre_usuario: user.nombre_usuario,
-        correo: user.correo,
-        rol: user.rol,
-        estado: user.estado,
+        nombre_usuario: user.nombre_usuario || '',
+        correo: user.correo || '',
+        rol: user.rol || '',
+        estado: user.estado.toString() || '1',
         contrasena: '',
         confirmPassword: ''
       });
@@ -51,9 +51,9 @@ export function EditUserModal({ isOpen, onClose, onUserUpdated, user }) {
 
       const updateData = {
         nombre_usuario: formData.nombre_usuario,
-        correo: formData.correo,
+        correo: formData.correo.toLowerCase(),
         rol: formData.rol,
-        estado: parseInt(formData.estado)
+        estado: parseInt(formData.estado, 10)
       };
 
       if (formData.contrasena) {
@@ -72,7 +72,7 @@ export function EditUserModal({ isOpen, onClose, onUserUpdated, user }) {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Error al actualizar usuario');
+        throw new Error(data.error || data.mensaje || 'Error al actualizar usuario');
       }
 
       setSuccess(true);
@@ -81,10 +81,11 @@ export function EditUserModal({ isOpen, onClose, onUserUpdated, user }) {
       setTimeout(() => {
         onClose();
         setSuccess(false);
-      }, 2000);
+      }, 3000);
 
     } catch (err) {
       setError(err.message);
+      setTimeout(() => setError(null), 3000);
     }
   };
 
@@ -95,7 +96,14 @@ export function EditUserModal({ isOpen, onClose, onUserUpdated, user }) {
       <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-bold text-[#001937]">Editar Usuario</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-[#001937]">
+          <button 
+            onClick={() => {
+              onClose();
+              setError(null);
+              setSuccess(false);
+            }} 
+            className="text-gray-500 hover:text-[#001937]"
+          >
             <FaTimes />
           </button>
         </div>
@@ -221,7 +229,11 @@ export function EditUserModal({ isOpen, onClose, onUserUpdated, user }) {
           <div className="flex justify-end space-x-3 mt-6">
             <button
               type="button"
-              onClick={onClose}
+              onClick={() => {
+                onClose();
+                setError(null);
+                setSuccess(false);
+              }}
               className="px-4 py-2 border rounded-lg hover:bg-gray-50"
             >
               Cancelar

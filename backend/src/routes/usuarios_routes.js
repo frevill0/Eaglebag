@@ -12,8 +12,8 @@ const router = express.Router();
 
 router.post('/login', iniciarSesion);
 router.post('/crear', verifyToken, isAdmin, crearUsuario);
-router.delete('/eliminar/:id', verifyToken, isAdmin, eliminarUsuario);
-router.put('/actualizar/:id', verifyToken, isAdmin, actualizarUsuario);
+router.delete('/eliminar/:codigo_colaborador', verifyToken, isAdmin, eliminarUsuario);
+router.put('/actualizar/:codigo_colaborador', verifyToken, actualizarUsuario);
 router.get('/obtener', verifyToken, obtenerUsuarios);
 
 export default router; 
