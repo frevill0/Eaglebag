@@ -2,6 +2,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import routerUsuarios from '../src/routes/usuarios_routes.js'
+import routerSocios from '../src/routes/socios_routes.js'
 
 const app = express();
 dotenv.config();
@@ -18,6 +19,7 @@ app.get('/eaglebag' , (req, res) => {
 app.set('port', process.env.PORT || 3000);
 
 app.use('/eaglebag/usuarios', routerUsuarios)
+app.use('/eaglebag/socios', routerSocios)
 
 app.use((err, req, res, next) => {
     console.error(err.stack);

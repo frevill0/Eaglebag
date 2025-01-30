@@ -1,150 +1,199 @@
-import { useState, useMemo } from 'react';
-import { FaPlus, FaSearch, FaEye, FaBars, FaGolfBall, FaHome, FaBoxes, FaUsers, FaUser } from 'react-icons/fa';
-import { useNavigate } from 'react-router-dom';
+import { useState, useMemo, useEffect } from 'react';
+import { FaPlus, FaSearch, FaEye, FaEdit, FaTrash } from 'react-icons/fa';
 import { SocioTalegasModal } from '../components/SocioTalegasModal';
 import { NewSocioModal } from '../components/NewSocioModal';
+import { EditSocioModal } from '../components/EditSocioModal';
 import Header from '../components/Header';
 
-// Datos de socios (pueden venir de una API en el futuro)
-const initialSocios = [
-  {
-    id: 1,
-    codigo: 'SOC001',
-    nombre: 'Juan Pérez',
-    email: 'juan@example.com',
-    telefono: '0991234567',
-    talegas: [
-      { id: 1, codigo: 'TAL001', estado: 'Activo', ubicacion: 'Coche A-1' },
-      { id: 2, codigo: 'TAL002', estado: 'Inactivo', ubicacion: 'Nicho B-2' },
-    ],
-  },
-  {
-    id: 2,
-    codigo: 'SOC002',
-    nombre: 'María García',
-    email: 'maria@example.com',
-    telefono: '0992345678',
-    talegas: [{ id: 3, codigo: 'TAL003', estado: 'Activo', ubicacion: 'Nicho C-3' }],
-  },
-  {
-    id: 3,
-    codigo: 'SOC003',
-    nombre: 'Carlos López',
-    email: 'carlos@example.com',
-    telefono: '0993456789',
-    talegas: [
-      { id: 4, codigo: 'TAL004', estado: 'Activo', ubicacion: 'Coche B-1' },
-      { id: 5, codigo: 'TAL005', estado: 'Activo', ubicacion: 'Coche B-2' },
-    ],
-  },
-  {
-    id: 4,
-    codigo: 'SOC004',
-    nombre: 'Ana Martínez',
-    email: 'ana@example.com',
-    telefono: '0994567890',
-    talegas: [{ id: 6, codigo: 'TAL006', estado: 'Inactivo', ubicacion: 'Nicho A-1' }],
-  },
-  {
-    id: 5,
-    codigo: 'SOC005',
-    nombre: 'Luis Torres',
-    email: 'luis@example.com',
-    telefono: '0995678901',
-    talegas: [
-      { id: 7, codigo: 'TAL007', estado: 'Activo', ubicacion: 'Coche D-1' },
-      { id: 8, codigo: 'TAL008', estado: 'Activo', ubicacion: 'Nicho D-2' },
-    ],
-  },
-];
-
 export function Socios() {
-  const navigate = useNavigate();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [socios, setSocios] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedSocio, setSelectedSocio] = useState(null);
   const [isNewSocioModalOpen, setIsNewSocioModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
-  // Filtrar socios en tiempo real
+  const fetchSocios = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/socios/obtener`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al cargar los socios');
+      }
+
+      const data = await response.json();
+      setSocios(data);
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSocios();
+  }, []);
+
   const filteredSocios = useMemo(() => {
-    return initialSocios.filter((socio) =>
-      socio.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      socio.codigo.toLowerCase().includes(searchTerm.toLowerCase())
+    return socios.filter((socio) =>
+      socio.nombres_completos?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      socio.codigo_socio?.toString().includes(searchTerm.toLowerCase())
     );
-  }, [searchTerm]);
+  }, [searchTerm, socios]);
 
   const handleViewTalegas = (socio) => {
     setSelectedSocio(socio);
     setIsModalOpen(true);
   };
 
-  return (
-    <div className="min-h-screen flex flex-col bg-white">
-      <Header setSidebarOpen={setSidebarOpen} />
+  const handleEdit = (socio) => {
+    setSelectedSocio(socio);
+    setIsEditModalOpen(true);
+  };
 
-      <main className="flex-1 p-6">
+  const handleDelete = (socio) => {
+    setSelectedSocio(socio);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/socios/eliminar/${selectedSocio.codigo_socio}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Error al eliminar socio');
+      }
+
+      setIsDeleteModalOpen(false);
+      setSelectedSocio(null);
+      fetchSocios();
+    } catch (err) {
+      setError(err.message);
+      setTimeout(() => setError(null), 3000);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FFC800]"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen flex flex-col bg-gray-100">
+      <Header />
+
+      <main className="flex-1 p-8">
         <div className="max-w-7xl mx-auto">
-          <div className="flex justify-between items-center mb-8">
-            <h1 className="text-3xl font-bold text-[#001937]">Socios</h1>
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Gestión de Socios</h1>
+              <p className="mt-1 text-sm text-gray-600">Administra los socios del club</p>
+            </div>
+            <button
+              onClick={() => setIsNewSocioModalOpen(true)}
+              className="bg-[#FFC800] text-white px-4 py-2 rounded-lg hover:bg-[#001937] transition-colors flex items-center space-x-2"
+            >
+              <FaPlus size={16} />
+              <span>Nuevo Socio</span>
+            </button>
           </div>
 
-          <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-            <div className="p-6">
-              <div className="flex flex-col md:flex-row justify-between items-center mb-6 space-y-4 md:space-y-0">
-                <div className="relative w-full md:w-64">
-                  <input
-                    type="search"
-                    placeholder="Buscar socios..."
-                    className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FFC800] focus:border-transparent focus:outline-none transition-all"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                  <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                </div>
-                <button
-                  onClick={() => setIsNewSocioModalOpen(true)}
-                  className="w-full md:w-auto bg-[#FFC800] text-white px-6 py-2 rounded-lg shadow hover:bg-[#001937] hover:text-[#FFC800] flex items-center justify-center space-x-2 transition-all"
-                >
-                  <FaPlus />
-                  <span>Añadir Nuevo Socio</span>
-                </button>
-              </div>
+          <div className="mb-6">
+            <div className="relative w-64">
+              <input
+                type="search"
+                placeholder="Buscar socios..."
+                className="w-full px-4 py-2 pl-10 border rounded-lg focus:ring-2 focus:ring-[#FFC800] focus:outline-none"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            </div>
+          </div>
 
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="bg-[#001937] text-white">
-                      <th className="px-6 py-4 text-left">Código</th>
-                      <th className="px-6 py-4 text-left">Nombre</th>
-                      <th className="px-6 py-4 text-left">Email</th>
-                      <th className="px-6 py-4 text-left">Teléfono</th>
-                      <th className="px-6 py-4 text-left">Talegas</th>
-                      <th className="px-6 py-4 text-left">Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredSocios.map((socio) => (
-                      <tr key={socio.id} className="border-b hover:bg-gray-50 transition-colors">
-                        <td className="px-6 py-4">{socio.codigo}</td>
-                        <td className="px-6 py-4">{socio.nombre}</td>
-                        <td className="px-6 py-4">{socio.email}</td>
-                        <td className="px-6 py-4">{socio.telefono}</td>
-                        <td className="px-6 py-4">{socio.talegas.length}</td>
-                        <td className="px-6 py-4">
-                          <button
-                            onClick={() => handleViewTalegas(socio)}
-                            className="text-[#FFC800] hover:text-[#001937] transition-colors"
-                          >
-                            <FaEye className="text-xl" />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+          {loading ? (
+            <div className="text-center py-4">Cargando socios...</div>
+          ) : error && (
+            <div className="mb-4 p-4 bg-red-50 border-l-4 border-red-500 flex items-center">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd"/>
+                </svg>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-red-700">{error}</p>
               </div>
             </div>
+          )}
+
+          <div className="bg-white rounded-lg shadow overflow-hidden">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead>
+                <tr className="bg-[#001937] text-white">
+                  <th className="text-left py-4 px-6">Código</th>
+                  <th className="text-left py-4 px-6">Nombre</th>
+                  <th className="text-left py-4 px-6">Email</th>
+                  <th className="text-left py-4 px-6">Teléfono</th>
+                  <th className="text-center py-4 px-6">Acciones</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {filteredSocios.map((socio, index) => (
+                  <tr
+                    key={socio.codigo_socio}
+                    className={index % 2 === 0 ? 'bg-[#F9F9F9]' : 'bg-white'}
+                  >
+                    <td className="py-4 px-6">{socio.codigo_socio}</td>
+                    <td className="py-4 px-6">{socio.nombres_completos}</td>
+                    <td className="py-4 px-6">{socio.correo}</td>
+                    <td className="py-4 px-6">{socio.telefono || '-'}</td>
+                    <td className="py-4 px-6">
+                      <div className="flex justify-center space-x-3">
+                        <button
+                          onClick={() => handleViewTalegas(socio)}
+                          className="text-blue-600 hover:text-blue-800"
+                          title="Ver información"
+                        >
+                          <FaEye size={18} />
+                        </button>
+                        <button 
+                          onClick={() => handleEdit(socio)}
+                          className="text-blue-600 hover:text-blue-800"
+                          title="Editar socio"
+                        >
+                          <FaEdit size={18} />
+                        </button>
+                        <button 
+                          onClick={() => handleDelete(socio)}
+                          className="text-red-600 hover:text-red-800"
+                          title="Eliminar socio"
+                        >
+                          <FaTrash size={18} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       </main>
@@ -152,6 +201,7 @@ export function Socios() {
       <NewSocioModal
         isOpen={isNewSocioModalOpen}
         onClose={() => setIsNewSocioModalOpen(false)}
+        onSocioCreated={fetchSocios}
       />
 
       <SocioTalegasModal
@@ -163,16 +213,50 @@ export function Socios() {
         socio={selectedSocio}
       />
 
-      {/* Footer */}
-      <footer className="border-t p-4 bg-white text-sm text-gray-600">
-        <div className="flex justify-between items-center">
-          <p>© 2025 Quito Tenis & Golf Club. Todos los derechos reservados.</p>
-          <div className="space-x-4">
-            <a href="#" className="hover:text-[#001937] transition-colors">Ayuda</a>
-            <a href="#" className="hover:text-[#001937] transition-colors">Soporte</a>
+      <EditSocioModal
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setSelectedSocio(null);
+        }}
+        onSocioUpdated={fetchSocios}
+        socio={selectedSocio}
+      />
+
+      {isDeleteModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-sm w-full">
+            <h3 className="text-lg font-bold text-gray-900 mb-4">Confirmar Eliminación</h3>
+            <p className="text-gray-600 mb-6">
+              ¿Estás seguro de que deseas eliminar al socio {selectedSocio?.nombres_completos}?
+              Esta acción no se puede deshacer.
+            </p>
+            {error && (
+              <div className="mb-4 p-4 bg-red-50 border-l-4 border-red-500 rounded">
+                <p className="text-sm text-red-700">{error}</p>
+              </div>
+            )}
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => {
+                  setIsDeleteModalOpen(false);
+                  setSelectedSocio(null);
+                  setError(null);
+                }}
+                className="px-4 py-2 border rounded-lg text-gray-700 hover:bg-gray-50"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+              >
+                Eliminar
+              </button>
+            </div>
           </div>
         </div>
-      </footer>
+      )}
     </div>
   );
 }
