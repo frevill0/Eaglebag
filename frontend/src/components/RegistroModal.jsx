@@ -1,19 +1,50 @@
 import { useState } from 'react';
 import { FaTimes } from 'react-icons/fa';
 
-export function RegistroModal({ isOpen, onClose }) {
+export function RegistroModal({ isOpen, onClose, talega, tipo }) {
   const [formData, setFormData] = useState({
-    tipo: 'entrada',
-    codigoSocio: '',
-    talega: '',
+    tipo: tipo || 'entrada',
+    id_talega: talega?.id_talega || '',
     observaciones: ''
   });
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Aquí irá la lógica para enviar los datos
-    console.log(formData);
-    onClose();
+    setLoading(true);
+    setError(null);
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/registros/crear`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(formData)
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al crear el registro');
+      }
+
+      setSuccess(true);
+      setTimeout(() => {
+        setSuccess(false);
+        onClose();
+      }, 2000);
+
+    } catch (error) {
+      console.error('Error:', error);
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleChange = (e) => {
@@ -30,7 +61,9 @@ export function RegistroModal({ isOpen, onClose }) {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-[#001937]">Registro de Talega</h2>
+          <h2 className="text-2xl font-bold text-[#001937]">
+            {formData.tipo === 'entrada' ? 'Entrada' : 'Salida'} de Talega
+          </h2>
           <button 
             onClick={onClose}
             className="text-gray-500 hover:text-[#001937]"
@@ -38,6 +71,18 @@ export function RegistroModal({ isOpen, onClose }) {
             <FaTimes className="text-xl" />
           </button>
         </div>
+
+        {error && (
+          <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg">
+            {error}
+          </div>
+        )}
+
+        {success && (
+          <div className="mb-4 p-3 bg-green-100 text-green-700 rounded-lg">
+            Registro creado exitosamente
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
@@ -57,34 +102,6 @@ export function RegistroModal({ isOpen, onClose }) {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Código del Socio
-            </label>
-            <input
-              type="text"
-              name="codigoSocio"
-              value={formData.codigoSocio}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#FFC800] focus:outline-none"
-              placeholder="Ingrese el código del socio"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Talega
-            </label>
-            <input
-              type="text"
-              name="talega"
-              value={formData.talega}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#FFC800] focus:outline-none"
-              placeholder="Ingrese el código de la talega"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
               Observaciones
             </label>
             <textarea
@@ -97,21 +114,17 @@ export function RegistroModal({ isOpen, onClose }) {
             />
           </div>
 
-          <div className="flex justify-end space-x-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-[#FFC800] text-white rounded-lg shadow hover:bg-[#001937] hover:text-[#FFC800] transition"
-            >
-              Registrar
-            </button>
-          </div>
+          <button
+            type="submit"
+            disabled={loading}
+            className={`w-full py-2 px-4 rounded-lg text-white font-medium 
+              ${loading 
+                ? 'bg-gray-400 cursor-not-allowed' 
+                : 'bg-[#FFC800] hover:bg-[#001937] hover:text-[#FFC800]'} 
+              transition-colors`}
+          >
+            {loading ? 'Procesando...' : 'Registrar'}
+          </button>
         </form>
       </div>
     </div>

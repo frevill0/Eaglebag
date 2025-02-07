@@ -1,6 +1,66 @@
-import { FaTimes, FaHistory } from 'react-icons/fa';
+import { useState } from 'react';
+import { FaTimes, FaHistory, FaSignInAlt, FaSignOutAlt, FaTrash, FaToggleOn } from 'react-icons/fa';
+import { RegistroModal } from './RegistroModal';
+import { useAuth } from '../context/AuthContext';
 
 export function BagDetailsModal({ bag, onClose }) {
+  const { user } = useAuth();
+  const [isRegistroModalOpen, setIsRegistroModalOpen] = useState(false);
+  const [tipoRegistro, setTipoRegistro] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const handleRegistro = (tipo) => {
+    setTipoRegistro(tipo);
+    setIsRegistroModalOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!confirm('¿Estás seguro de que deseas eliminar esta talega?')) return;
+    
+    setLoading(true);
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/eaglebag/talegas/eliminar/${bag.bagCode}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      if (!response.ok) throw new Error('Error al eliminar la talega');
+      
+      onClose();
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleToggleStatus = async () => {
+    setLoading(true);
+    try {
+      const newStatus = bag.status === 'Activo' ? 0 : 1;
+      
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/talegas/actualizar/${bag.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ estado: newStatus })
+      });
+
+      if (!response.ok) throw new Error('Error al actualizar el estado');
+      
+      onClose();
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (!bag) return null;
 
   const movementHistory = [
@@ -41,7 +101,6 @@ export function BagDetailsModal({ bag, onClose }) {
                 <div>
                   <span className="text-sm text-gray-500">Socio</span>
                   <p className="font-semibold text-[#001937]">{bag.socioName}</p>
-                  <p className="text-sm text-gray-600">Código: {bag.socioCode}</p>
                 </div>
                 <div>
                   <span className="text-sm text-gray-500">Estado</span>
@@ -92,9 +151,70 @@ export function BagDetailsModal({ bag, onClose }) {
               <h3 className="font-semibold text-lg text-[#001937] mb-4">Descripción</h3>
               <p className="text-gray-600">{bag.description}</p>
             </div>
+
+            <div className="flex space-x-4 mt-6">
+              <button
+                onClick={() => handleRegistro('entrada')}
+                className="flex items-center px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+              >
+                <FaSignInAlt className="mr-2" />
+                Entrada
+              </button>
+              <button
+                onClick={() => handleRegistro('salida')}
+                className="flex items-center px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+              >
+                <FaSignOutAlt className="mr-2" />
+                Salida
+              </button>
+            </div>
           </div>
         </div>
+
+        <div className="mt-6 flex justify-end gap-4">
+          {user?.rol === 'admin' && (
+            <button
+              onClick={handleDelete}
+              className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 flex items-center gap-2"
+              disabled={loading}
+            >
+              <FaTrash />
+              Eliminar Talega
+            </button>
+          )}
+          
+          <button
+            onClick={handleToggleStatus}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center gap-2"
+            disabled={loading}
+          >
+            <FaToggleOn />
+            {bag.status === 'Activo' ? 'Desactivar' : 'Activar'} Talega
+          </button>
+          
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
+          >
+            Cerrar
+          </button>
+        </div>
+
+        {error && (
+          <div className="mt-4 text-red-600">
+            {error}
+          </div>
+        )}
       </div>
+
+      {isRegistroModalOpen && (
+        <RegistroModal
+          isOpen={isRegistroModalOpen}
+          onClose={() => setIsRegistroModalOpen(false)}
+          talega={bag}
+          tipo={tipoRegistro}
+        />
+      )}
     </div>
   );
 } 

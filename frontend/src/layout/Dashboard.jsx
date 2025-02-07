@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaChevronDown, FaHome, FaBoxes, FaUsers, FaGolfBall, FaBars, FaPlus, FaSearch } from 'react-icons/fa';
 import { BagDetailsModal } from '../components/BagDetailsModal';
@@ -14,146 +14,62 @@ export function Dashboard() {
   const [selectedLocation, setSelectedLocation] = useState('todos');
   const [selectedStatus, setSelectedStatus] = useState('todos');
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
-  const [selectedBag, setSelectedBag] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [isNewBagModalOpen, setIsNewBagModalOpen] = useState(false);
+  const [selectedBag, setSelectedBag] = useState(null);
+  const [bags, setBags] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const { logout } = useAuth();
 
-  const [bags] = useState([
-    {
-      id: 1,
-      bagCode: 'BAG001',
-      socioCode: '001',
-      socioName: 'Juan Pérez',
-      status: 'Activo',
-      location: 'Coche A-1',
-      lastMovement: '2024-03-20',
-      description: 'Talega negra con logo QTGC',
-      image: productImage
-    },
-    {
-      id: 2,
-      bagCode: 'BAG002',
-      socioCode: '002',
-      socioName: 'María García',
-      status: 'Activo',
-      location: 'Nicho B-3',
-      lastMovement: '2024-03-19',
-      description: 'Talega azul marca Titleist',
-      image: productImage
-    },
-    {
-      id: 3,
-      bagCode: 'BAG003',
-      socioCode: '003',
-      socioName: 'Carlos López',
-      status: 'Inactivo',
-      location: 'Coche C-2',
-      lastMovement: '2024-03-18',
-      description: 'Talega roja con ruedas',
-      image: productImage
-    },
-    {
-      id: 4,
-      bagCode: 'BAG004',
-      socioCode: '004',
-      socioName: 'Ana Martínez',
-      status: 'Activo',
-      location: 'Nicho A-4',
-      lastMovement: '2024-03-17',
-      description: 'Talega blanca marca Callaway',
-      image: productImage
-    },
-    {
-      id: 5,
-      bagCode: 'BAG005',
-      socioCode: '005',
-      socioName: 'Roberto Sánchez',
-      status: 'Activo',
-      location: 'Coche B-1',
-      lastMovement: '2024-03-16',
-      description: 'Talega verde con compartimentos',
-      image: productImage
-    },
-    {
-      id: 6,
-      bagCode: 'BAG006',
-      socioCode: '006',
-      socioName: 'Laura Torres',
-      status: 'Inactivo',
-      location: 'Nicho D-2',
-      lastMovement: '2024-03-15',
-      description: 'Talega gris marca Ping',
-      image: productImage
-    },
-    {
-      id: 7,
-      bagCode: 'BAG007',
-      socioCode: '007',
-      socioName: 'Diego Ramírez',
-      status: 'Activo',
-      location: 'Coche A-3',
-      lastMovement: '2024-03-14',
-      description: 'Talega negra con porta paraguas',
-      image: productImage
-    },
-    {
-      id: 8,
-      bagCode: 'BAG008',
-      socioCode: '008',
-      socioName: 'Carmen Ruiz',
-      status: 'Activo',
-      location: 'Nicho C-1',
-      lastMovement: '2024-03-13',
-      description: 'Talega morada marca TaylorMade',
-      image: productImage
-    },
-    {
-      id: 9,
-      bagCode: 'BAG009',
-      socioCode: '009',
-      socioName: 'Pablo Morales',
-      status: 'Inactivo',
-      location: 'Coche D-4',
-      lastMovement: '2024-03-12',
-      description: 'Talega amarilla con bolsillos laterales',
-      image: productImage
-    },
-    {
-      id: 10,
-      bagCode: 'BAG010',
-      socioCode: '010',
-      socioName: 'Isabel Castro',
-      status: 'Activo',
-      location: 'Nicho B-2',
-      lastMovement: '2024-03-11',
-      description: 'Talega naranja marca Cobra',
-      image: productImage
-    },
-    {
-      id: 11,
-      bagCode: 'BAG011',
-      socioCode: '011',
-      socioName: 'Fernando Silva',
-      status: 'Activo',
-      location: 'Coche C-3',
-      lastMovement: '2024-03-10',
-      description: 'Talega café con detalles dorados',
-      image: productImage
-    },
-    {
-      id: 12,
-      bagCode: 'BAG012',
-      socioCode: '012',
-      socioName: 'Patricia Vega',
-      status: 'Inactivo',
-      location: 'Nicho A-2',
-      lastMovement: '2024-03-09',
-      description: 'Talega rosa marca Wilson',
-      image: productImage
+  const fetchBags = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/talegas/obtener`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al cargar las talegas');
+      }
+
+      const data = await response.json();
+      
+      // Transformar los datos para que coincidan con el formato esperado
+      const formattedBags = data.map(bag => ({
+        id: bag.id_talega,
+        bagCode: bag.id_talega,
+        socioName: bag.socios?.nombres_completos || 'Sin nombre',
+        socioCode: bag.codigo_socio,
+        location: bag.ubicacion,
+        status: bag.estado === 1 ? 'Activo' : 'Inactivo',
+        image: bag.imagen_url || '/default-bag.png', // Asegúrate de tener una imagen por defecto
+        descripcion: bag.descripcion,
+        marca: bag.marca,
+        tipo_talega: bag.tipo_talega,
+        num_palos: bag.num_palos,
+        tiene_toalla: bag.tiene_toalla,
+        tiene_bolas: bag.tiene_bolas,
+        tiene_guantes: bag.tiene_guantes,
+        tiene_paraguas: bag.tiene_paraguas,
+        socio: bag.socios
+      }));
+
+      setBags(formattedBags);
+    } catch (error) {
+      console.error('Error:', error);
+      setError(error.message);
+    } finally {
+      setLoading(false);
     }
-  ]);
+  };
+
+  useEffect(() => {
+    fetchBags();
+  }, []);
 
   const filteredBags = bags.filter(bag => {
     const matchesSearch = 
@@ -172,13 +88,21 @@ export function Dashboard() {
 
   const handleBagClick = (bag) => {
     setSelectedBag(bag);
-    setIsModalOpen(true);
+    setIsDetailsModalOpen(true);
   };
 
   const handleLogout = () => {
     logout();
     navigate('/');
   };
+
+  if (loading) {
+    return <div className="flex items-center justify-center h-screen">Cargando...</div>;
+  }
+
+  if (error) {
+    return <div className="text-red-500 text-center mt-4">{error}</div>;
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
@@ -259,6 +183,28 @@ export function Dashboard() {
             <h2 className="text-2xl font-bold text-[#001937]">Dashboard</h2>
           </div>
 
+          {/* Barra de búsqueda y botones */}
+          <div className="mb-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div className="relative w-full sm:w-96">
+              <input
+                type="search"
+                placeholder="Buscar talega..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#FFC800] focus:outline-none"
+              />
+              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            </div>
+            
+            <button
+              onClick={() => setIsNewBagModalOpen(true)}
+              className="px-4 py-2 bg-[#FFC800] text-white rounded-lg shadow hover:bg-[#001937] hover:text-[#FFC800] transition flex items-center gap-2"
+            >
+              <FaPlus />
+              Nueva Talega
+            </button>
+          </div>
+
           {/* Contenido del dashboard */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8">
             {filteredBags.map((bag) => (
@@ -291,10 +237,24 @@ export function Dashboard() {
       </div>
 
       {/* Modal */}
-      {isModalOpen && (
+      {isDetailsModalOpen && (
         <BagDetailsModal
           bag={selectedBag}
-          onClose={() => setIsModalOpen(false)}
+          onClose={() => {
+            setIsDetailsModalOpen(false);
+            fetchBags(); // Refrescar las talegas después de cerrar el modal
+          }}
+        />
+      )}
+
+      {isNewBagModalOpen && (
+        <NewBagModal
+          isOpen={isNewBagModalOpen}
+          onClose={() => setIsNewBagModalOpen(false)}
+          onBagCreated={() => {
+            fetchBags(); // Refrescar las talegas después de crear una nueva
+            setIsNewBagModalOpen(false);
+          }}
         />
       )}
     </div>
