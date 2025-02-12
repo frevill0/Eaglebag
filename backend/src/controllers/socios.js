@@ -113,20 +113,23 @@ const crearSocio = async (req, res) => {
 const obtenerSocios = async (req, res) => {
   try {
     const socios = await prisma.socios.findMany({
+      where: {
+        estado: 1
+      },
       include: {
         talegas: {
           select: {
             id_talega: true,
-            descripcion: true,
-            marca: true,
-            tipo_talega: true,
-            estado: true,
-            ubicacion: true
+            estado: true
           }
         }
+      },
+      orderBy: {
+        fecha_registro: 'desc'
       }
     });
 
+    // Transformar los BigInt a string para evitar problemas de serialización
     const sociosFormateados = socios.map(socio => ({
       ...socio,
       codigo_socio: socio.codigo_socio.toString(),
@@ -137,13 +140,13 @@ const obtenerSocios = async (req, res) => {
     }));
 
     res.json(sociosFormateados);
+
   } catch (error) {
-    console.error('Error en obtenerSocios:', error);
+    console.error('Error al obtener socios:', error);
     res.status(500).json({
-      error: 'Error al obtener socios',
-      mensaje: 'Ocurrió un error interno',
-      ayuda: 'Por favor, intenta nuevamente más tarde',
-      detalles: error.message
+      error: 'Error al obtener los socios',
+      detalle: error.message,
+      ayuda: 'Por favor, intente nuevamente o contacte al administrador'
     });
   }
 };

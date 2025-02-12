@@ -9,7 +9,7 @@ const ProtectedRoute = ({ element: Component, requiredRole }) => {
     return <Navigate to="/" />;
   }
 
-  if (requiredRole && userRole !== requiredRole) {
+  if (requiredRole && userRole?.toLowerCase() !== requiredRole.toLowerCase()) {
     return <Navigate to="/dashboard" />;
   }
 

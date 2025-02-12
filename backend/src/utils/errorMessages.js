@@ -31,7 +31,7 @@ export const ERROR_MESSAGES = {
     unauthorized: 'No tienes autorización para realizar esta acción'
   },
   ROLES: {
-    invalid_role: 'El rol especificado no es válido. Los roles permitidos son: ADMIN, OPERADOR y CONSULTOR',
+    invalid_role: 'El rol especificado no es válido. Los roles permitidos son: admin y operador',
     admin_only: 'Esta acción solo puede ser realizada por un administrador',
     insufficient_permissions: 'No tienes permisos suficientes para realizar esta acción'
   },

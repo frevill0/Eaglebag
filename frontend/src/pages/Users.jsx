@@ -177,9 +177,9 @@ export function Users() {
                                         <td className="py-4 px-6">{user.correo}</td>
                                         <td className="py-4 px-6">
                                             <span className={`px-2 py-1 rounded-full text-sm ${
-                                                user.rol === 'ADMIN' 
+                                                user.rol.toLowerCase() === 'admin'
                                                     ? 'bg-purple-100 text-purple-800'
-                                                    : user.rol === 'OPERADOR'
+                                                    : user.rol.toLowerCase() === 'operador'
                                                     ? 'bg-blue-100 text-blue-800'
                                                     : 'bg-gray-100 text-gray-800'
                                             }`}>

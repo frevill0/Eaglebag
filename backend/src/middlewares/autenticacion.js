@@ -2,12 +2,11 @@ import jwt from 'jsonwebtoken';
 
 // Definir roles válidos como constantes
 export const ROLES = {
-  ADMIN: 'ADMIN',
-  OPERADOR: 'OPERADOR',
-  CONSULTOR: 'CONSULTOR'
+  ADMIN: 'admin',
+  OPERADOR: 'operador'
 };
 
-const verifyToken = (req, res, next) => {
+export const verifyToken = (req, res, next) => {
   try {
     const token = req.headers.authorization?.split(' ')[1];
 
@@ -20,22 +19,24 @@ const verifyToken = (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     
     // Validar que el rol sea uno de los permitidos
-    if (!Object.values(ROLES).includes(decoded.rol)) {
+    if (!Object.values(ROLES).includes(decoded.rol.toLowerCase())) {
       return res.status(403).json({
-        error: 'Rol no válido'
+        error: 'Rol no válido',
+        detalles: `Rol ${decoded.rol} no está permitido. Roles válidos: ${Object.values(ROLES).join(', ')}`
       });
     }
 
-    req.usuario = decoded;
+    req.usuario = {
+      ...decoded,
+      rol: decoded.rol.toLowerCase() // Normalizar el rol a minúsculas
+    };
     next();
-    
   } catch (error) {
     if (error.name === 'TokenExpiredError') {
       return res.status(401).json({
         error: 'Token expirado'
       });
     }
-    
     return res.status(401).json({
       error: 'Token inválido'
     });
@@ -43,7 +44,7 @@ const verifyToken = (req, res, next) => {
 };
 
 // Middleware para administradores
-const isAdmin = (req, res, next) => {
+export const isAdmin = (req, res, next) => {
   if (req.usuario.rol !== ROLES.ADMIN) {
     return res.status(403).json({
       error: 'Acceso permitido solo para administradores'
@@ -95,10 +96,7 @@ const generateToken = (usuario) => {
   );
 };
 
-export { 
-  verifyToken, 
-  isAdmin, 
+export {   
   isOperadorOrAdmin, 
-  validateUserRole,
   generateToken 
 };

@@ -35,7 +35,7 @@ export function Header({ setSidebarOpen }) {
           <FaPlus className="text-lg" />
           <span>Registrar</span>
         </a>
-        {userRole === 'ADMIN' && (
+        {userRole?.toLowerCase() === 'admin' && (
           <a href="/dashboard/users" className="flex items-center space-x-2 text-[#001937] hover:text-[#FFC800]">
             <FaUsers className="text-lg" />
             <span>Usuarios</span>

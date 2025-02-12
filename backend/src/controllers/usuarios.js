@@ -4,6 +4,7 @@ import { generateToken } from '../middlewares/autenticacion.js';
 import { ERROR_MESSAGES } from '../utils/errorMessages.js';
 import { validateEmail, validatePassword, validateUsername, validateCodigoColaborador } from '../utils/validations.js';
 import { ROLES } from '../middlewares/autenticacion.js';
+import jwt from 'jsonwebtoken';
 
 // Crear una única instancia de PrismaClient
 const prisma = new PrismaClient();
@@ -57,7 +58,15 @@ const iniciarSesion = async (req, res) => {
       });
     }
 
-    const token = generateToken(usuario);
+    const token = jwt.sign(
+      {
+        codigo_colaborador: usuario.codigo_colaborador.toString(),
+        nombre_usuario: usuario.nombre_usuario,
+        rol: usuario.rol.toLowerCase(),
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: '8h' }
+    );
 
     res.json({
       token,
@@ -65,7 +74,7 @@ const iniciarSesion = async (req, res) => {
         codigo_colaborador: usuario.codigo_colaborador.toString(),
         nombre_usuario: usuario.nombre_usuario,
         correo: usuario.correo,
-        rol: usuario.rol,
+        rol: usuario.rol.toLowerCase(),
         estado: usuario.estado
       },
       mensaje: '¡Bienvenido de nuevo!'
@@ -84,8 +93,15 @@ const iniciarSesion = async (req, res) => {
 const crearUsuario = async (req, res) => {
   try {
     // Verificar conexión a la base de datos
-    if (!prisma) {
-      throw new Error('La conexión a la base de datos no está disponible');
+    try {
+      await prisma.$queryRaw`SELECT 1`;
+    } catch (dbError) {
+      console.error('Error de conexión a la base de datos:', dbError);
+      return res.status(503).json({
+        error: 'Error de conexión',
+        mensaje: 'No se pudo conectar a la base de datos',
+        ayuda: 'Por favor, intenta más tarde'
+      });
     }
 
     const {
@@ -104,18 +120,21 @@ const crearUsuario = async (req, res) => {
     if (!contrasena) errores.contrasena = ERROR_MESSAGES.REQUIRED_FIELDS.contrasena;
     if (!rol) errores.rol = ERROR_MESSAGES.REQUIRED_FIELDS.rol;
 
-    // Validación de formatos
+    // Validación de formatos con mensajes específicos
     if (codigo_colaborador && !validateCodigoColaborador(codigo_colaborador)) {
-      errores.codigo_colaborador = ERROR_MESSAGES.INVALID_FORMAT.codigo_colaborador;
+      errores.codigo_colaborador = 'El código debe ser un número positivo';
     }
     if (nombre_usuario && !validateUsername(nombre_usuario)) {
-      errores.nombre_usuario = ERROR_MESSAGES.INVALID_FORMAT.nombre_usuario;
+      errores.nombre_usuario = 'El nombre de usuario debe tener entre 3 y 50 caracteres y solo puede contener letras, números, guiones y guiones bajos';
     }
     if (correo && !validateEmail(correo)) {
-      errores.correo = ERROR_MESSAGES.INVALID_FORMAT.correo;
+      errores.correo = 'El correo electrónico no tiene un formato válido';
     }
     if (contrasena && !validatePassword(contrasena)) {
-      errores.contrasena = ERROR_MESSAGES.INVALID_FORMAT.contrasena;
+      errores.contrasena = 'La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula, un número y un carácter especial (@$!%*?&#._-)';
+    }
+    if (!rol || !Object.values(ROLES).includes(rol.toLowerCase())) {
+      errores.rol = `Rol no válido. Roles permitidos: ${Object.values(ROLES).join(', ')}`;
     }
 
     if (Object.keys(errores).length > 0) {
@@ -126,7 +145,7 @@ const crearUsuario = async (req, res) => {
       });
     }
 
-
+    // Verificar duplicados
     const [existingCodigo, existingEmail, existingUsername] = await Promise.all([
       prisma.usuarios.findUnique({
         where: { codigo_colaborador: BigInt(codigo_colaborador) }

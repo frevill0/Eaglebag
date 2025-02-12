@@ -1,20 +1,30 @@
 export const validateEmail = (email) => {
-  const regex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
-  return regex.test(email);
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 };
 
 export const validatePassword = (password) => {
-  const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
-  return regex.test(password);
+  // Validación más clara y permisiva para caracteres especiales
+  const minLength = 8;
+  const hasUpperCase = /[A-Z]/.test(password);
+  const hasLowerCase = /[a-z]/.test(password);
+  const hasNumbers = /\d/.test(password);
+  const hasSpecialChar = /[@$!%*?&#._\-]/.test(password);
+  
+  return (
+    password.length >= minLength &&
+    hasUpperCase &&
+    hasLowerCase &&
+    hasNumbers &&
+    hasSpecialChar
+  );
 };
 
 export const validateUsername = (username) => {
-  const regex = /^[a-zA-Z0-9_]{3,50}$/;
-  return regex.test(username);
+  return /^[a-zA-Z0-9_-]{3,50}$/.test(username);
 };
 
 export const validateCodigoColaborador = (codigo) => {
-  return /^\d{1,19}$/.test(codigo.toString());
+  return /^\d+$/.test(codigo) && parseInt(codigo) > 0;
 };
 
 export const validateEstado = (estado) => {
@@ -36,4 +46,4 @@ export const validatePhoneNumber = (telefono) => {
 export const validateCodigoSocio = (codigo) => {
   // Similar a validateCodigoColaborador, acepta números de hasta 4 dígitos
   return /^\d{1,4}$/.test(codigo.toString());
-}; 
+};
